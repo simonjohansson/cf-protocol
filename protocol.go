@@ -7,6 +7,7 @@ import (
 	. "github.com/simonjohansson/cf-protocol/commands/push"
 	. "github.com/simonjohansson/cf-protocol/helpers"
 	"syscall"
+	. "github.com/simonjohansson/cf-protocol/commands/delete"
 )
 
 type protocol struct{}
@@ -34,6 +35,13 @@ func (c *protocol) GetMetadata() plugin.PluginMetadata {
 				HelpText: "Promotes the app",
 				UsageDetails: plugin.Usage{
 					Usage: "protocol-promote -manifest ",
+				},
+			},
+			{
+				Name:     "protocol-delete",
+				HelpText: "Deletes the app",
+				UsageDetails: plugin.Usage{
+					Usage: "protocol-prodeletemote -manifest -postfix",
 				},
 			},
 		},
@@ -66,6 +74,12 @@ func (c *protocol) Run(cliConnection plugin.CliConnection, args []string) {
 		err := RunPromote(cliConnection, logger, args)
 		if err != nil {
 			logger.Error("Push failed due to " + err.Error())
+			syscall.Exit(-1)
+		}
+	case "protocol-delete":
+		err := RunDelete(cliConnection, logger, args)
+		if err != nil {
+			logger.Error("Delete failed due to " + err.Error())
 			syscall.Exit(-1)
 		}
 	}
