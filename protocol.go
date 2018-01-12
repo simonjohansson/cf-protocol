@@ -2,11 +2,10 @@ package main
 
 import (
 	"code.cloudfoundry.org/cli/plugin"
-	"github.com/simonjohansson/cf-protocol/conformance"
+	. "github.com/simonjohansson/cf-protocol/commands/conformance"
+	. "github.com/simonjohansson/cf-protocol/commands/push"
 	"syscall"
-	"github.com/simonjohansson/cf-protocol/logger"
-	"flag"
-	"os"
+	. "github.com/simonjohansson/cf-protocol/helpers"
 )
 
 type protocol struct{}
@@ -22,6 +21,13 @@ func (c *protocol) GetMetadata() plugin.PluginMetadata {
 					Usage: "protocol-conformance -appUrl",
 				},
 			},
+			{
+				Name:     "protocol-push",
+				HelpText: "Pushes the app",
+				UsageDetails: plugin.Usage{
+					Usage: "protocol-push -domain -postfix -manifest ",
+				},
+			},
 		},
 		Version: plugin.VersionType{
 			0, 0, 1,
@@ -32,37 +38,21 @@ func (c *protocol) GetMetadata() plugin.PluginMetadata {
 func main() {
 	plugin.Start(new(protocol))
 }
-func ParseArgs(args []string) error {
-	return nil
-}
 
 func (c *protocol) Run(cliConnection plugin.CliConnection, args []string) {
-	logger := logger.NewLogger()
-	if args[0] == "protocol-conformance" {
-		runConformance(logger, args)
+	logger := NewLogger()
+	switch args[0] {
+	case "protocol-conformance":
+		err := RunConformance(logger, args)
+		if err != nil {
+			logger.Error("Conformance failed due to " + err.Error())
+			syscall.Exit(-1)
+		}
+	case "protocol-push":
+		err := RunPush(cliConnection, logger, args)
+		if err != nil {
+			logger.Error("Push failed due to " + err.Error())
+			syscall.Exit(-1)
+		}
 	}
-}
-
-func parseArgs(logger logger.Logger, flagset *flag.FlagSet, args []string) {
-	err := flagset.Parse(args[1:])
-	if err != nil {
-		logger.Error(err.Error())
-		os.Exit(1)
-	}
-}
-
-func runConformance(logger logger.Logger, args []string) {
-
-	flagSet := flag.NewFlagSet("echo", flag.ExitOnError)
-	appUrl := flagSet.String("appUrl", "", "app url to push app to, run confirmance aginst etc.")
-	parseArgs(logger, flagSet, args)
-
-	logger.Info("Starting conformance on app with url '" + *appUrl + "'")
-	httpClient := conformance.NewHttpClient()
-	err := conformance.Conformance(*appUrl, httpClient, logger)
-	if err != nil {
-		logger.Error("Conformance failed due to " + err.Error())
-		syscall.Exit(-1)
-	}
-	logger.Info("Conformance succeeded!")
 }

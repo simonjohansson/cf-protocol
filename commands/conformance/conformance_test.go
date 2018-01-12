@@ -5,7 +5,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"testing"
-	"github.com/simonjohansson/cf-protocol/logger"
+	. "github.com/simonjohansson/cf-protocol/helpers"
 )
 
 func TestGinkgo(t *testing.T) {
@@ -21,7 +21,7 @@ var _ = Describe("Conformance", func() {
 		httpFetcher.SetupTestData(appUrl+"/internal/version", `{"revision": "a840f1ae2122c3540a47541887eccff04aaeb212"}`, 200)
 		httpFetcher.SetupTestData(appUrl+"/internal/status", `{}`, 200)
 
-		err := Conformance(appUrl, httpFetcher, logger.NewMockLogger())
+		err := Conformance(appUrl, httpFetcher, NewMockLogger())
 
 		Expect(err).To(BeNil())
 
@@ -34,7 +34,7 @@ var _ = Describe("Conformance", func() {
 		httpFetcher.SetupTestData(appUrl+"/internal/version", ``, 500)
 		httpFetcher.SetupTestData(appUrl+"/internal/status", `{}`, 200)
 
-		err := Conformance(appUrl, httpFetcher, logger.NewMockLogger())
+		err := Conformance(appUrl, httpFetcher, NewMockLogger())
 
 		Expect(err).To(Not(BeNil()))
 	})
@@ -46,7 +46,7 @@ var _ = Describe("Conformance", func() {
 		httpFetcher.SetupTestData(appUrl+"/internal/version", `Wiiiie`, 200)
 		httpFetcher.SetupTestData(appUrl+"/internal/status", `{}`, 200)
 
-		err := Conformance(appUrl, httpFetcher, logger.NewMockLogger())
+		err := Conformance(appUrl, httpFetcher, NewMockLogger())
 
 		Expect(err).To(Not(BeNil()))
 	})
@@ -58,7 +58,7 @@ var _ = Describe("Conformance", func() {
 		httpFetcher.SetupTestData(appUrl+"/internal/version", `{"revision": "a840f1ae2122c3540a47541887eccff04aaeb212"}`, 200)
 		httpFetcher.SetupTestData(appUrl+"/internal/status", `{}`, 200)
 
-		err := Conformance(appUrl, httpFetcher, logger.NewMockLogger())
+		err := Conformance(appUrl, httpFetcher, NewMockLogger())
 
 		Expect(err).To(BeNil())
 	})
@@ -70,7 +70,7 @@ var _ = Describe("Conformance", func() {
 		httpFetcher.SetupTestData(appUrl+"/internal/version", `{"revision": "a840f1ae2122c3540a47541887eccff04aaeb212"}`, 200)
 		httpFetcher.SetupTestData(appUrl+"/internal/status", `{}`, 404)
 
-		err := Conformance(appUrl, httpFetcher, logger.NewMockLogger())
+		err := Conformance(appUrl, httpFetcher, NewMockLogger())
 
 		Expect(err).To(Not(BeNil()))
 	})

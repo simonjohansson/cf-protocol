@@ -1,4 +1,4 @@
-package conformance
+package helpers
 
 import (
 	"net/http"
@@ -7,15 +7,15 @@ import (
 	"bytes"
 )
 
-type HttpFetcher interface {
+type HttpClient interface {
 	Get(string) (*http.Response, error)
 }
 
 // Impl
 //
-type HttpClient struct{}
+type httpClient struct{}
 
-func (h HttpClient) Get(url string) (*http.Response, error) {
+func (h httpClient) Get(url string) (*http.Response, error) {
 	client := &http.Client{}
 	response, err := client.Get(url)
 	if (err != nil) {
@@ -29,17 +29,17 @@ func (h HttpClient) Get(url string) (*http.Response, error) {
 	return response, err
 }
 
-func NewHttpClient() HttpClient {
-	return HttpClient{}
+func NewHttpClient() httpClient {
+	return httpClient{}
 }
 
 // Mock
 //
-type MockHttpFetcher struct {
+type mockHttpClient struct {
 	Request map[string]*http.Response
 }
 
-func (m MockHttpFetcher) SetupTestData(url string, body string, status int) {
+func (m mockHttpClient) SetupTestData(url string, body string, status int) {
 	response := &http.Response{
 		Body:       ioutil.NopCloser(bytes.NewBuffer([]byte(body))),
 		StatusCode: status,
@@ -47,13 +47,13 @@ func (m MockHttpFetcher) SetupTestData(url string, body string, status int) {
 	m.Request[url] = response
 }
 
-func NewMockHttpFetcher() MockHttpFetcher {
-	return MockHttpFetcher{
+func NewMockHttpFetcher() mockHttpClient {
+	return mockHttpClient{
 		Request: map[string]*http.Response{},
 	}
 }
 
-func (m MockHttpFetcher) Get(url string) (*http.Response, error) {
+func (m mockHttpClient) Get(url string) (*http.Response, error) {
 	response := m.Request[url]
 	if ( response.StatusCode != 200 ) {
 		return nil, errors.New("Shit")
