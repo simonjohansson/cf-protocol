@@ -49,8 +49,8 @@ var _ = Describe("PushPlan", func() {
 		plan, err := PushPlan(manifestPath, postfix, domain, NewMockLogger(), manifestReader)
 
 		expected := Plan{
-			Cmds: []Cmd{
-				Cmd{[]string{"push", appName, "-f", manifestPath, "-n", appName, "-d", domain}},
+			Cmds: []CfCmd{
+				CfCmd{[]string{"push", appName, "-f", manifestPath, "-n", appName, "-d", domain}},
 			},
 		}
 

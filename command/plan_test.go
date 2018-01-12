@@ -16,8 +16,8 @@ var _ = Describe("Plan", func() {
 	It("produces a plan as strings to be printed out", func() {
 		plan := Plan{
 			[]Cmd{
-				Cmd{[]string{"a", "b", "c"}},
-				Cmd{[]string{"1", "2", "3"}},
+				CfCmd{[]string{"a", "b", "c"}},
+				CfCmd{[]string{"1", "2", "3"}},
 			},
 		}
 

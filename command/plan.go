@@ -6,17 +6,22 @@ import (
 	"code.cloudfoundry.org/cli/plugin"
 )
 
-type Cmd struct {
+type Cmd interface {
+	ExecuteCmd(cliConnection plugin.CliConnection, logger helpers.Logger) error
+	Printable() string
+}
+
+type CfCmd struct {
 	Args []string
 }
 
-func (c Cmd) ExecuteCmd(cliConnection plugin.CliConnection, logger helpers.Logger) error {
+func (c CfCmd) ExecuteCmd(cliConnection plugin.CliConnection, logger helpers.Logger) error {
 	logger.Info("About to execute: " + c.Printable())
 	_, err := cliConnection.CliCommand(c.Args...)
 	return err
 }
 
-func (c Cmd) Printable() string {
+func (c CfCmd) Printable() string {
 	return "cf " + strings.Join(c.Args, " ")
 }
 

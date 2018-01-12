@@ -19,7 +19,7 @@ func PushPlan(manifestPath string, postfix string, domain string, logger Logger,
 	}
 
 	appName := appName(application.Name, postfix)
-	cmd := Cmd{
+	cmd := CfCmd{
 		[]string{"push", appName, "-f", manifestPath, "-n", appName, "-d", domain},
 	}
 
