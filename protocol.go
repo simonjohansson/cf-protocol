@@ -3,9 +3,10 @@ package main
 import (
 	"code.cloudfoundry.org/cli/plugin"
 	. "github.com/simonjohansson/cf-protocol/commands/conformance"
+	. "github.com/simonjohansson/cf-protocol/commands/promote"
 	. "github.com/simonjohansson/cf-protocol/commands/push"
-	"syscall"
 	. "github.com/simonjohansson/cf-protocol/helpers"
+	"syscall"
 )
 
 type protocol struct{}
@@ -26,6 +27,13 @@ func (c *protocol) GetMetadata() plugin.PluginMetadata {
 				HelpText: "Pushes the app",
 				UsageDetails: plugin.Usage{
 					Usage: "protocol-push -domain -postfix -manifest ",
+				},
+			},
+			{
+				Name:     "protocol-promote",
+				HelpText: "Promotes the app",
+				UsageDetails: plugin.Usage{
+					Usage: "protocol-promote -manifest ",
 				},
 			},
 		},
@@ -50,6 +58,12 @@ func (c *protocol) Run(cliConnection plugin.CliConnection, args []string) {
 		}
 	case "protocol-push":
 		err := RunPush(cliConnection, logger, args)
+		if err != nil {
+			logger.Error("Push failed due to " + err.Error())
+			syscall.Exit(-1)
+		}
+	case "protocol-promote":
+		err := RunPromote(cliConnection, logger, args)
 		if err != nil {
 			logger.Error("Push failed due to " + err.Error())
 			syscall.Exit(-1)

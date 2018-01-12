@@ -5,10 +5,11 @@ import (
 	. "github.com/onsi/gomega"
 
 	"testing"
-	. "github.com/simonjohansson/cf-protocol/helpers"
+	. "github.com/simonjohansson/cf-protocol/mocks"
 	. "github.com/simonjohansson/cf-protocol/command"
 	"code.cloudfoundry.org/cli/util/manifest"
-	"errors"
+	"github.com/golang/mock/gomock"
+	"code.cloudfoundry.org/cli/cf/errors"
 )
 
 func TestGinkgo(t *testing.T) {
@@ -17,15 +18,29 @@ func TestGinkgo(t *testing.T) {
 }
 
 var _ = Describe("PushPlan", func() {
-	It("Returns an error when manifest at path does not exist", func() {
-		manifestReader := NewMockManifestReader()
-		manifestReader.SetApplication(manifest.Application{Name: "Simon"}, errors.New("Bla bla path not found"))
+	var (
+		mockCtrl       *gomock.Controller
+		manifestReader *MockManifestReader
+		logger         *MockLogger
+	)
 
+	BeforeEach(func() {
+		mockCtrl = gomock.NewController(GinkgoT())
+		manifestReader = NewMockManifestReader(mockCtrl)
+		logger = NewMockLogger(mockCtrl)
+
+		logger.EXPECT().Info(gomock.Any()).AnyTimes()
+	})
+
+	It("Returns an error when manifest at path does not exist", func() {
 		postfix := "asdf"
 		domain := "apps.dc.springernature.io"
 		manifestPath := "path/to/manifest.yml"
 
-		app, err := PushPlan(manifestPath, postfix, domain, NewMockLogger(), manifestReader)
+		manifestReader.EXPECT().Read(manifestPath).
+			Return(manifest.Application{}, errors.New("Yolo"))
+
+		app, err := PushPlan(manifestPath, postfix, domain, logger, manifestReader)
 
 		Expect(err).To(Not(BeNil()))
 		Expect(app).To(Equal(Plan{}))
@@ -37,19 +52,20 @@ var _ = Describe("PushPlan", func() {
 			Name: "my-test-app",
 		}
 
-		manifestReader := NewMockManifestReader()
-		manifestReader.SetApplication(application, nil)
-
 		postfix := "asdf"
 		domain := "apps.dc.springernature.io"
 		manifestPath := "path/to/manifest.yml"
 
 		appName := application.Name + "-" + postfix
 
-		plan, err := PushPlan(manifestPath, postfix, domain, NewMockLogger(), manifestReader)
+		manifestReader.EXPECT().Read(manifestPath).
+			Return(application, nil)
+
+
+		plan, err := PushPlan(manifestPath, postfix, domain, logger, manifestReader)
 
 		expected := Plan{
-			Cmds: []CfCmd{
+			Cmds: []Cmd{
 				CfCmd{[]string{"push", appName, "-f", manifestPath, "-n", appName, "-d", domain}},
 			},
 		}

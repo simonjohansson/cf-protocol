@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	. "github.com/simonjohansson/cf-protocol/helpers"
 	"flag"
+	"code.cloudfoundry.org/cli/cf/errors"
 )
 
 type Revision struct {
@@ -42,7 +43,14 @@ func checkRevision(appUrl string, fetcher HttpClient, log Logger) error {
 func checkInternalStatus(appUrl string, fetcher HttpClient, logger Logger) error {
 	logger.Info("Checking that app returns 200 on /internal/status")
 	statusUrl := appUrl + "/internal/status"
-	_, err := fetcher.Get(statusUrl)
+	resp, err := fetcher.Get(statusUrl)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != 200 {
+		return errors.New("Expected 200 got " + string(resp.StatusCode))
+	}
 
 	return err
 }
@@ -62,20 +70,11 @@ func Conformance(appUrl string, fetcher HttpClient, logger Logger) error {
 	return nil
 }
 
-func parseArgs(logger Logger, flagset *flag.FlagSet, args []string) error {
-	err := flagset.Parse(args[1:])
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func RunConformance(logger Logger, args []string) error {
 
 	flagSet := flag.NewFlagSet("echo", flag.ExitOnError)
 	appUrl := flagSet.String("appUrl", "", "app url to push app to, run confirmance aginst etc.")
-	err := parseArgs(logger, flagSet, args)
+	err := ParseArgs(logger, flagSet, args)
 	if err != nil {
 		return err
 	}

@@ -7,8 +7,6 @@ type Logger interface {
 	Error(string)
 }
 
-// Impl
-//
 type logger struct{}
 
 func (h logger) Info(msg string) {
@@ -26,17 +24,4 @@ func NewLogger() logger {
 	logrus.SetFormatter(formatter)
 
 	return logger{}
-}
-
-// Mock
-type mockLogger struct{}
-
-func (mockLogger) Info(string) {
-}
-
-func (mockLogger) Error(string) {
-}
-
-func NewMockLogger() mockLogger {
-	return mockLogger{}
 }

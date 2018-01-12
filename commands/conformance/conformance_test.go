@@ -5,7 +5,11 @@ import (
 	. "github.com/onsi/gomega"
 
 	"testing"
-	. "github.com/simonjohansson/cf-protocol/helpers"
+	"github.com/golang/mock/gomock"
+	. "github.com/simonjohansson/cf-protocol/mocks"
+	"io/ioutil"
+	"bytes"
+	"net/http"
 )
 
 func TestGinkgo(t *testing.T) {
@@ -13,28 +17,53 @@ func TestGinkgo(t *testing.T) {
 	RunSpecs(t, "Conformance")
 }
 
+func makeResponse(data string, returnCode int) *http.Response {
+	return &http.Response{
+		Body:       ioutil.NopCloser(bytes.NewBuffer([]byte(data))),
+		StatusCode: returnCode,
+	}
+}
+
 var _ = Describe("Conformance", func() {
-	It("Finds revision", func() {
+	var (
+		mockCtrl   *gomock.Controller
+		httpClient *MockHttpClient
+		logger     *MockLogger
+	)
+
+	BeforeEach(func() {
+		mockCtrl = gomock.NewController(GinkgoT())
+		httpClient = NewMockHttpClient(mockCtrl)
+		logger = NewMockLogger(mockCtrl)
+
+		logger.EXPECT().Info(gomock.Any()).AnyTimes()
+	})
+
+	It("Works when both internal/version is correct and internal/status is 200", func() {
 		appUrl := "https://app-under-test.cf.io"
 
-		httpFetcher := NewMockHttpFetcher()
-		httpFetcher.SetupTestData(appUrl+"/internal/version", `{"revision": "a840f1ae2122c3540a47541887eccff04aaeb212"}`, 200)
-		httpFetcher.SetupTestData(appUrl+"/internal/status", `{}`, 200)
+		httpClient.EXPECT().Get(appUrl + "/internal/version").
+			Return(makeResponse(`{"revision": "a840f1ae2122c3540a47541887eccff04aaeb212"}`, 200), nil, )
 
-		err := Conformance(appUrl, httpFetcher, NewMockLogger())
+		httpClient.EXPECT().Get(appUrl + "/internal/status").
+			Return(makeResponse(``, 200), nil, )
+
+		err := Conformance(appUrl, httpClient, logger)
 
 		Expect(err).To(BeNil())
 
 	})
-
+	//
 	It("Errors when non 200 for version", func() {
 		appUrl := "https://app-under-test.cf.io"
 
-		httpFetcher := NewMockHttpFetcher()
-		httpFetcher.SetupTestData(appUrl+"/internal/version", ``, 500)
-		httpFetcher.SetupTestData(appUrl+"/internal/status", `{}`, 200)
+		httpClient.EXPECT().Get(appUrl + "/internal/version").
+			Return(makeResponse(``, 500), nil, )
 
-		err := Conformance(appUrl, httpFetcher, NewMockLogger())
+		httpClient.EXPECT().Get(appUrl + "/internal/status").
+			Return(makeResponse(``, 200), nil, )
+
+		err := Conformance(appUrl, httpClient, logger)
 
 		Expect(err).To(Not(BeNil()))
 	})
@@ -42,35 +71,27 @@ var _ = Describe("Conformance", func() {
 	It("Errors when non valid json returned for version", func() {
 		appUrl := "https://app-under-test.cf.io"
 
-		httpFetcher := NewMockHttpFetcher()
-		httpFetcher.SetupTestData(appUrl+"/internal/version", `Wiiiie`, 200)
-		httpFetcher.SetupTestData(appUrl+"/internal/status", `{}`, 200)
+		httpClient.EXPECT().Get(appUrl + "/internal/version").
+			Return(makeResponse(`{"im borked": ...'`, 500), nil, )
 
-		err := Conformance(appUrl, httpFetcher, NewMockLogger())
+		httpClient.EXPECT().Get(appUrl + "/internal/status").
+			Return(makeResponse(``, 200), nil, )
+
+		err := Conformance(appUrl, httpClient, logger)
 
 		Expect(err).To(Not(BeNil()))
-	})
-
-	It("Finds status", func() {
-		appUrl := "https://app-under-test.cf.io"
-
-		httpFetcher := NewMockHttpFetcher()
-		httpFetcher.SetupTestData(appUrl+"/internal/version", `{"revision": "a840f1ae2122c3540a47541887eccff04aaeb212"}`, 200)
-		httpFetcher.SetupTestData(appUrl+"/internal/status", `{}`, 200)
-
-		err := Conformance(appUrl, httpFetcher, NewMockLogger())
-
-		Expect(err).To(BeNil())
 	})
 
 	It("Errors when non 200 for /internal/status", func() {
 		appUrl := "https://app-under-test.cf.io"
 
-		httpFetcher := NewMockHttpFetcher()
-		httpFetcher.SetupTestData(appUrl+"/internal/version", `{"revision": "a840f1ae2122c3540a47541887eccff04aaeb212"}`, 200)
-		httpFetcher.SetupTestData(appUrl+"/internal/status", `{}`, 404)
+		httpClient.EXPECT().Get(appUrl + "/internal/version").
+			Return(makeResponse(`{"revision": "a840f1ae2122c3540a47541887eccff04aaeb212"}`, 200), nil, )
 
-		err := Conformance(appUrl, httpFetcher, NewMockLogger())
+		httpClient.EXPECT().Get(appUrl + "/internal/status").
+			Return(makeResponse(``, 500), nil, )
+
+		err := Conformance(appUrl, httpClient, logger)
 
 		Expect(err).To(Not(BeNil()))
 	})

@@ -26,21 +26,12 @@ func PushPlan(manifestPath string, postfix string, domain string, logger Logger,
 	return Plan{[]Cmd{cmd}}, nil
 }
 
-func parseArgs(logger Logger, flagset *flag.FlagSet, args []string) error {
-	err := flagset.Parse(args[1:])
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func RunPush(cliConnection plugin.CliConnection, logger Logger, args []string) error {
 	flagSet := flag.NewFlagSet("echo", flag.ExitOnError)
 	manifestPath := flagSet.String("manifest", "", "Path to the manifest")
 	postfix := flagSet.String("postfix", "", "Postfix to use push")
 	domain := flagSet.String("domain", "", "Domain to use when pushing")
-	err := parseArgs(logger, flagSet, args)
+	err := ParseArgs(logger, flagSet, args)
 	if err != nil {
 		return err
 	}
