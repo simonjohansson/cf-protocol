@@ -16,13 +16,18 @@ var _ = Describe("PushPlan", func() {
 	var (
 		mockCtrl       *gomock.Controller
 		manifestReader *MockManifestReader
+		cliClient      *MockCliConnection
 		logger         *MockLogger
+		push           Push
 	)
 
 	BeforeEach(func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		manifestReader = NewMockManifestReader(mockCtrl)
 		logger = NewMockLogger(mockCtrl)
+		cliClient = NewMockCliConnection(mockCtrl)
+
+		push = NewPush(cliClient, manifestReader, logger)
 
 		logger.EXPECT().Info(gomock.Any()).AnyTimes()
 	})
@@ -35,7 +40,7 @@ var _ = Describe("PushPlan", func() {
 		manifestReader.EXPECT().Read(manifestPath).
 			Return(manifest.Application{}, errors.New("Yolo"))
 
-		app, err := PushPlan(manifestPath, postfix, domain, logger, manifestReader)
+		app, err := push.PushPlan(manifestPath, postfix, domain)
 
 		Expect(err).To(HaveOccurred())
 		Expect(app).To(Equal(Plan{}))
@@ -56,7 +61,7 @@ var _ = Describe("PushPlan", func() {
 		manifestReader.EXPECT().Read(manifestPath).
 			Return(application, nil)
 
-		plan, err := PushPlan(manifestPath, postfix, domain, logger, manifestReader)
+		plan, err := push.PushPlan(manifestPath, postfix, domain)
 
 		expected := Plan{
 			Cmds: []Cmd{

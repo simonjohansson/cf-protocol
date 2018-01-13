@@ -8,45 +8,59 @@ import (
 	"flag"
 )
 
-func appName(baseName string, postfix string) string {
+type Delete struct {
+	cliConnection  plugin.CliConnection
+	manifestReader ManifestReader
+	logger         Logger
+}
+
+func NewDelete(cliConnection plugin.CliConnection, manifestReader ManifestReader, logger Logger) Delete {
+	return Delete{
+		cliConnection,
+		manifestReader,
+		logger,
+	}
+}
+
+func (d Delete) appName(baseName string, postfix string) string {
 	return fmt.Sprintf("%s-%s", baseName, postfix)
 }
 
-func DeletePlan(manifestPath string, postfix string, logger Logger, manifestReader ManifestReader) (Plan, error) {
-	application, err := manifestReader.Read(manifestPath)
+func (d Delete) DeletePlan(manifestPath string, postfix string) (Plan, error) {
+	application, err := d.manifestReader.Read(manifestPath)
 	if err != nil {
 		return Plan{}, err
 	}
 
-	appName := appName(application.Name, postfix)
+	appName := d.appName(application.Name, postfix)
 	return Plan{[]Cmd{
 		CfCmd{[]string{"delete", appName, "-f", "-r"}},
 	}}, nil
 }
 
-func RunDelete(cliConnection plugin.CliConnection, logger Logger, args []string) error {
+func (d Delete) RunDelete(args []string) error {
 	flagSet := flag.NewFlagSet("echo", flag.ExitOnError)
 	manifestPath := flagSet.String("manifest", "", "Path to the manifest")
 	postfix := flagSet.String("postfix", "", "Postfix to use push")
-	err := ParseArgs(logger, flagSet, args)
+	err := ParseArgs(d.logger, flagSet, args)
 	if err != nil {
 		return err
 	}
 
-	plan, err := DeletePlan(*manifestPath, *postfix, logger, NewManifestReader())
+	plan, err := d.DeletePlan(*manifestPath, *postfix)
 	if err != nil {
 		return err
 	}
 
-	logger.Info("Execution plan")
-	plan.PrintPlan(logger)
+	d.logger.Info("Execution plan")
+	plan.PrintPlan(d.logger)
 
-	logger.Info("Executing")
-	err = plan.ExecutePlan(cliConnection, logger)
+	d.logger.Info("Executing")
+	err = plan.ExecutePlan(d.cliConnection, d.logger)
 	if err != nil {
 		return err
 	}
 
-	logger.Info("Delete succeeded!")
+	d.logger.Info("Delete succeeded!")
 	return nil
 }

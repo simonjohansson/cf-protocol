@@ -17,12 +17,16 @@ var _ = Describe("DeletePlan", func() {
 		mockCtrl       *gomock.Controller
 		manifestReader *MockManifestReader
 		logger         *MockLogger
+		cliConnection  *MockCliConnection
+		delete         Delete
 	)
 
 	BeforeEach(func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		manifestReader = NewMockManifestReader(mockCtrl)
+		cliConnection = NewMockCliConnection(mockCtrl)
 		logger = NewMockLogger(mockCtrl)
+		delete = NewDelete(cliConnection, manifestReader, logger)
 
 		logger.EXPECT().Info(gomock.Any()).AnyTimes()
 	})
@@ -34,7 +38,7 @@ var _ = Describe("DeletePlan", func() {
 		manifestReader.EXPECT().Read(manifestPath).
 			Return(manifest.Application{}, errors.New("Yolo"))
 
-		app, err := DeletePlan(manifestPath, postfix, logger, manifestReader)
+		app, err := delete.DeletePlan(manifestPath, postfix)
 
 		Expect(err).To(HaveOccurred())
 		Expect(app).To(Equal(Plan{}))
@@ -54,7 +58,7 @@ var _ = Describe("DeletePlan", func() {
 		manifestReader.EXPECT().Read(manifestPath).
 			Return(application, nil)
 
-		plan, err := DeletePlan(manifestPath, postfix, logger, manifestReader)
+		plan, err := delete.DeletePlan(manifestPath, postfix)
 
 		expected := Plan{
 			Cmds: []Cmd{

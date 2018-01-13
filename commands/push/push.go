@@ -8,17 +8,31 @@ import (
 	"flag"
 )
 
-func appName(baseName string, postfix string) string {
+type Push struct {
+	cliConnection  plugin.CliConnection
+	manifestReader ManifestReader
+	logger         Logger
+}
+
+func NewPush(cliConnection plugin.CliConnection, manifestReader ManifestReader, logger Logger) Push {
+	return Push{
+		cliConnection,
+		manifestReader,
+		logger,
+	}
+}
+
+func (p Push) appName(baseName string, postfix string) string {
 	return fmt.Sprintf("%s-%s", baseName, postfix)
 }
 
-func PushPlan(manifestPath string, postfix string, domain string, logger Logger, manifestReader ManifestReader) (Plan, error) {
-	application, err := manifestReader.Read(manifestPath)
+func (p Push) PushPlan(manifestPath string, postfix string, domain string) (Plan, error) {
+	application, err := p.manifestReader.Read(manifestPath)
 	if err != nil {
 		return Plan{}, err
 	}
 
-	appName := appName(application.Name, postfix)
+	appName := p.appName(application.Name, postfix)
 	cmd := CfCmd{
 		[]string{"push", appName, "-f", manifestPath, "-n", appName, "-d", domain},
 	}
@@ -26,30 +40,30 @@ func PushPlan(manifestPath string, postfix string, domain string, logger Logger,
 	return Plan{[]Cmd{cmd}}, nil
 }
 
-func RunPush(cliConnection plugin.CliConnection, logger Logger, args []string) error {
+func (p Push) RunPush(args []string) error {
 	flagSet := flag.NewFlagSet("echo", flag.ExitOnError)
 	manifestPath := flagSet.String("manifest", "", "Path to the manifest")
 	postfix := flagSet.String("postfix", "", "Postfix to use push")
 	domain := flagSet.String("domain", "", "Domain to use when pushing")
-	err := ParseArgs(logger, flagSet, args)
+	err := ParseArgs(p.logger, flagSet, args)
 	if err != nil {
 		return err
 	}
 
-	plan, err := PushPlan(*manifestPath, *postfix, *domain, logger, NewManifestReader())
+	plan, err := p.PushPlan(*manifestPath, *postfix, *domain)
 	if err != nil {
 		return err
 	}
 
-	logger.Info("Execution plan")
-	plan.PrintPlan(logger)
+	p.logger.Info("Execution plan")
+	plan.PrintPlan(p.logger)
 
-	logger.Info("Executing")
-	err = plan.ExecutePlan(cliConnection, logger)
+	p.logger.Info("Executing")
+	err = plan.ExecutePlan(p.cliConnection, p.logger)
 	if err != nil {
 		return err
 	}
 
-	logger.Info("Push succeeded!")
+	p.logger.Info("Push succeeded!")
 	return nil
 }

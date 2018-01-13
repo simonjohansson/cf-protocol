@@ -7,7 +7,19 @@ import (
 	"flag"
 )
 
-func Promote(manifestPath string) Plan {
+type Promote struct {
+	cliConnection plugin.CliConnection
+	logger        Logger
+}
+
+func NewPromote(cliConnection plugin.CliConnection, logger Logger) Promote {
+	return Promote{
+		cliConnection,
+		logger,
+	}
+}
+
+func (p Promote) Promote(manifestPath string) Plan {
 	return Plan{
 		Cmds: []Cmd{
 			CfApps{},
@@ -15,18 +27,18 @@ func Promote(manifestPath string) Plan {
 	}
 }
 
-func RunPromote(cliConnection plugin.CliConnection, logger Logger, args []string) error {
+func (p Promote) RunPromote(args []string) error {
 	flagSet := flag.NewFlagSet("echo", flag.ExitOnError)
 	manifestPath := flagSet.String("manifest", "", "Path to the manifest")
-	err := ParseArgs(logger, flagSet, args)
+	err := ParseArgs(p.logger, flagSet, args)
 	if err != nil {
 		return err
 	}
 
-	logger.Info("Starting promote")
-	plan := Promote(*manifestPath)
+	p.logger.Info("Starting promote")
+	plan := p.Promote(*manifestPath)
 
-	err = plan.ExecutePlan(cliConnection, logger)
+	err = plan.ExecutePlan(p.cliConnection, p.logger)
 	if err != nil {
 		return err
 	}
