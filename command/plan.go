@@ -59,7 +59,7 @@ func (p Plan) Printable() []string {
 
 func (p Plan) PrintPlan(logger helpers.Logger) {
 	for _, command := range p.Printable() {
-		logger.Info("\t" + command)
+		logger.Info(command)
 	}
 }
 

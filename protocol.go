@@ -34,7 +34,7 @@ func (c *protocol) GetMetadata() plugin.PluginMetadata {
 				Name:     "protocol-delete",
 				HelpText: "Deletes the app",
 				UsageDetails: plugin.Usage{
-					Usage: "protocol-prodeletemote -manifest -postfix",
+					Usage: "protocol-delete -manifest -postfix",
 				},
 			},
 		},

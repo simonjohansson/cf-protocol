@@ -13,7 +13,7 @@ import (
 	"github.com/simonjohansson/cf-protocol/helpers"
 )
 
-var _ = Describe("PushPlan", func() {
+var _ = Describe("Push Plan", func() {
 	var (
 		mockCtrl       *gomock.Controller
 		manifestReader *MockManifestReader

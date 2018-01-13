@@ -1,6 +1,10 @@
 package helpers
 
-import "flag"
+import (
+	"flag"
+	"regexp"
+	"code.cloudfoundry.org/cli/cf/errors"
+)
 
 type Options struct {
 	ManifestPath string
@@ -17,6 +21,11 @@ func ParseArgs(args []string) (Options, error) {
 	err := flagSet.Parse(args[1:])
 	if err != nil {
 		return Options{}, err
+	}
+
+	mustBeANumber, _ := regexp.Compile("[0-9]+")
+	if !mustBeANumber.MatchString(*postfix) {
+		return Options{}, errors.New("postfix must be a number!")
 	}
 
 	return Options{

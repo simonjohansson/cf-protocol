@@ -13,7 +13,7 @@ import (
 	"github.com/simonjohansson/cf-protocol/helpers"
 )
 
-var _ = Describe("DeletePlan", func() {
+var _ = Describe("Delete Plan", func() {
 	var (
 		mockCtrl       *gomock.Controller
 		manifestReader *MockManifestReader
