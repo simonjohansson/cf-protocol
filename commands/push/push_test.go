@@ -1,21 +1,16 @@
-package push
+package push_test
 
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"testing"
 	. "github.com/simonjohansson/cf-protocol/mocks"
 	. "github.com/simonjohansson/cf-protocol/command"
+	. "github.com/simonjohansson/cf-protocol/commands/push"
 	"code.cloudfoundry.org/cli/util/manifest"
 	"github.com/golang/mock/gomock"
 	"code.cloudfoundry.org/cli/cf/errors"
 )
-
-func TestGinkgo(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Push")
-}
 
 var _ = Describe("PushPlan", func() {
 	var (
@@ -60,7 +55,6 @@ var _ = Describe("PushPlan", func() {
 
 		manifestReader.EXPECT().Read(manifestPath).
 			Return(application, nil)
-
 
 		plan, err := PushPlan(manifestPath, postfix, domain, logger, manifestReader)
 

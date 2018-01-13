@@ -1,21 +1,16 @@
-package conformance
+package conformance_test
 
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"testing"
 	"github.com/golang/mock/gomock"
 	. "github.com/simonjohansson/cf-protocol/mocks"
+	. "github.com/simonjohansson/cf-protocol/commands/conformance"
 	"io/ioutil"
 	"bytes"
 	"net/http"
 )
-
-func TestGinkgo(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Conformance")
-}
 
 func makeResponse(data string, returnCode int) *http.Response {
 	return &http.Response{

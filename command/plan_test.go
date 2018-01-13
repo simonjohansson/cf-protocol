@@ -1,16 +1,10 @@
-package command
+package command_test
 
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	"testing"
+	. "github.com/simonjohansson/cf-protocol/command"
 )
-
-func TestGinkgo(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Command")
-}
 
 var _ = Describe("Plan", func() {
 	It("produces a plan as strings to be printed out", func() {
