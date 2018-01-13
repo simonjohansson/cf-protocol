@@ -7,6 +7,7 @@ import (
 	"syscall"
 	. "github.com/simonjohansson/cf-protocol/commands/delete"
 	. "github.com/simonjohansson/cf-protocol/commands/push"
+	"github.com/simonjohansson/cf-protocol/command"
 )
 
 type protocol struct{}
@@ -47,26 +48,40 @@ func main() {
 	plugin.Start(new(protocol))
 }
 
+func executePlan(planName string, plan command.Plan, err error, logger Logger, cliConnection plugin.CliConnection) {
+	if err != nil {
+		logger.Error(planName + " failed due to " + err.Error())
+		syscall.Exit(-1)
+	}
+	logger.Info("Running plan " + planName)
+	logger.Info("Execution plan ")
+	plan.PrintPlan(logger)
+	logger.Info("Executing")
+	err = plan.ExecutePlan(cliConnection, logger)
+	if err != nil {
+		logger.Error(err.Error())
+		logger.Error("Aborting.")
+		syscall.Exit(-1)
+	}
+	logger.Info("Finished!")
+}
+
 func (c *protocol) Run(cliConnection plugin.CliConnection, args []string) {
 	logger := NewLogger()
+	options, err := ParseArgs(args)
+	if err != nil {
+		logger.Error(err.Error())
+		syscall.Exit(-1)
+	}
 	switch args[0] {
 	case "protocol-push":
-		err := NewPush(cliConnection, NewManifestReader(), logger).RunPush(args)
-		if err != nil {
-			logger.Error("Push failed due to " + err.Error())
-			syscall.Exit(-1)
-		}
+		plan, err := NewPush(NewManifestReader(), options).PushPlan()
+		executePlan("Push", plan, err, logger, cliConnection)
 	case "protocol-promote":
-		err := NewPromote(cliConnection, logger).RunPromote(args)
-		if err != nil {
-			logger.Error("Push failed due to " + err.Error())
-			syscall.Exit(-1)
-		}
+		plan, err := NewPromote(cliConnection, options).PromotePlan()
+		executePlan("Push", plan, err, logger, cliConnection)
 	case "protocol-delete":
-		err := NewDelete(cliConnection, NewManifestReader(), logger).RunDelete(args)
-		if err != nil {
-			logger.Error("Delete failed due to " + err.Error())
-			syscall.Exit(-1)
-		}
+		plan, err := NewDelete(NewManifestReader(), options).DeletePlan()
+		executePlan("Push", plan, err, logger, cliConnection)
 	}
 }

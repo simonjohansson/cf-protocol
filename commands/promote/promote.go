@@ -4,44 +4,24 @@ import (
 	"code.cloudfoundry.org/cli/plugin"
 	. "github.com/simonjohansson/cf-protocol/command"
 	. "github.com/simonjohansson/cf-protocol/helpers"
-	"flag"
 )
 
 type Promote struct {
 	cliConnection plugin.CliConnection
-	logger        Logger
+	options       Options
 }
 
-func NewPromote(cliConnection plugin.CliConnection, logger Logger) Promote {
+func NewPromote(cliConnection plugin.CliConnection, options Options) Promote {
 	return Promote{
 		cliConnection,
-		logger,
+		options,
 	}
 }
 
-func (p Promote) Promote(manifestPath string) Plan {
+func (p Promote) PromotePlan() (Plan, error) {
 	return Plan{
 		Cmds: []Cmd{
 			CfApps{},
 		},
-	}
-}
-
-func (p Promote) RunPromote(args []string) error {
-	flagSet := flag.NewFlagSet("echo", flag.ExitOnError)
-	manifestPath := flagSet.String("manifest", "", "Path to the manifest")
-	err := ParseArgs(p.logger, flagSet, args)
-	if err != nil {
-		return err
-	}
-
-	p.logger.Info("Starting promote")
-	plan := p.Promote(*manifestPath)
-
-	err = plan.ExecutePlan(p.cliConnection, p.logger)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	}, nil
 }

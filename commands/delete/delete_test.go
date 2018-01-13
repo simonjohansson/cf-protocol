@@ -10,35 +10,32 @@ import (
 	"code.cloudfoundry.org/cli/util/manifest"
 	"github.com/golang/mock/gomock"
 	"code.cloudfoundry.org/cli/cf/errors"
+	"github.com/simonjohansson/cf-protocol/helpers"
 )
 
 var _ = Describe("DeletePlan", func() {
 	var (
 		mockCtrl       *gomock.Controller
 		manifestReader *MockManifestReader
-		logger         *MockLogger
-		cliConnection  *MockCliConnection
 		delete         Delete
+		options        helpers.Options
 	)
 
 	BeforeEach(func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		manifestReader = NewMockManifestReader(mockCtrl)
-		cliConnection = NewMockCliConnection(mockCtrl)
-		logger = NewMockLogger(mockCtrl)
-		delete = NewDelete(cliConnection, manifestReader, logger)
-
-		logger.EXPECT().Info(gomock.Any()).AnyTimes()
+		options = helpers.Options{
+			ManifestPath: "/path/to/manifest.yml",
+			Postfix:      "yolo",
+		}
+		delete = NewDelete(manifestReader, options)
 	})
 
 	It("Returns an error when manifest at path does not exist", func() {
-		postfix := "asdf"
-		manifestPath := "path/to/manifest.yml"
-
-		manifestReader.EXPECT().Read(manifestPath).
+		manifestReader.EXPECT().Read(options.ManifestPath).
 			Return(manifest.Application{}, errors.New("Yolo"))
 
-		app, err := delete.DeletePlan(manifestPath, postfix)
+		app, err := delete.DeletePlan()
 
 		Expect(err).To(HaveOccurred())
 		Expect(app).To(Equal(Plan{}))
@@ -49,16 +46,11 @@ var _ = Describe("DeletePlan", func() {
 		application := manifest.Application{
 			Name: "my-test-app",
 		}
-
-		postfix := "asdf"
-		manifestPath := "path/to/manifest.yml"
-
-		appName := application.Name + "-" + postfix
-
-		manifestReader.EXPECT().Read(manifestPath).
+		manifestReader.EXPECT().Read(options.ManifestPath).
 			Return(application, nil)
+		appName := application.Name + "-" + options.Postfix
 
-		plan, err := delete.DeletePlan(manifestPath, postfix)
+		plan, err := delete.DeletePlan()
 
 		expected := Plan{
 			Cmds: []Cmd{
