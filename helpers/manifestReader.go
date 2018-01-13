@@ -1,7 +1,6 @@
 package helpers
 
 import (
-
 	"code.cloudfoundry.org/cli/util/manifest"
 )
 
