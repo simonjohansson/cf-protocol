@@ -45,7 +45,7 @@ var _ = Describe("Conformance", func() {
 
 		err := Conformance(appUrl, httpClient, logger)
 
-		Expect(err).To(BeNil())
+		Expect(err).To(Not(HaveOccurred()))
 
 	})
 	//
@@ -60,7 +60,7 @@ var _ = Describe("Conformance", func() {
 
 		err := Conformance(appUrl, httpClient, logger)
 
-		Expect(err).To(Not(BeNil()))
+		Expect(err).To(HaveOccurred())
 	})
 
 	It("Errors when non valid json returned for version", func() {
@@ -74,7 +74,7 @@ var _ = Describe("Conformance", func() {
 
 		err := Conformance(appUrl, httpClient, logger)
 
-		Expect(err).To(Not(BeNil()))
+		Expect(err).To(HaveOccurred())
 	})
 
 	It("Errors when non 200 for /internal/status", func() {
@@ -88,6 +88,6 @@ var _ = Describe("Conformance", func() {
 
 		err := Conformance(appUrl, httpClient, logger)
 
-		Expect(err).To(Not(BeNil()))
+		Expect(err).To(HaveOccurred())
 	})
 })

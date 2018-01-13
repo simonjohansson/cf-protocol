@@ -36,7 +36,7 @@ var _ = Describe("DeletePlan", func() {
 
 		app, err := DeletePlan(manifestPath, postfix, logger, manifestReader)
 
-		Expect(err).To(Not(BeNil()))
+		Expect(err).To(HaveOccurred())
 		Expect(app).To(Equal(Plan{}))
 
 	})
@@ -62,7 +62,7 @@ var _ = Describe("DeletePlan", func() {
 			},
 		}
 
-		Expect(err).To(BeNil())
+		Expect(err).To(Not(HaveOccurred()))
 		Expect(plan).To(Equal(expected))
 	})
 })

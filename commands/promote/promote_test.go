@@ -37,7 +37,7 @@ var _ = Describe("PushPlan", func() {
 
 		app, err := PushPlan(manifestPath, postfix, domain, logger, manifestReader)
 
-		Expect(err).To(Not(BeNil()))
+		Expect(err).To(HaveOccurred())
 		Expect(app).To(Equal(Plan{}))
 
 	})
