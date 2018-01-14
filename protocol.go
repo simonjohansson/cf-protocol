@@ -67,6 +67,9 @@ func executePlan(planName string, plan command.Plan, err error, logger Logger, c
 }
 
 func (c *protocol) Run(cliConnection plugin.CliConnection, args []string) {
+	if len(args) == 0 {
+		syscall.Exit(0)
+	}
 	logger := NewLogger()
 	options, err := ParseArgs(args)
 	if err != nil {
@@ -78,7 +81,7 @@ func (c *protocol) Run(cliConnection plugin.CliConnection, args []string) {
 		plan, err := NewPush(NewManifestReader(), options).PushPlan()
 		executePlan("Push", plan, err, logger, cliConnection)
 	case "protocol-promote":
-		plan, err := NewPromote(cliConnection, options).PromotePlan()
+		plan, err := NewPromote(cliConnection, NewManifestReader(), options).PromotePlan()
 		executePlan("Push", plan, err, logger, cliConnection)
 	case "protocol-delete":
 		plan, err := NewDelete(NewManifestReader(), options).DeletePlan()

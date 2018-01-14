@@ -4,11 +4,10 @@ import (
 	"strings"
 	"github.com/simonjohansson/cf-protocol/helpers"
 	"code.cloudfoundry.org/cli/plugin"
-	"fmt"
 )
 
 type Cmd interface {
-	ExecuteCmd(cliConnection plugin.CliConnection, logger helpers.Logger) ([]string, error)
+	ExecuteCmd(cliConnection plugin.CliConnection, logger helpers.Logger) error
 	Printable() string
 }
 
@@ -16,31 +15,14 @@ type CfCmd struct {
 	Args []string
 }
 
-func (c CfCmd) ExecuteCmd(cliConnection plugin.CliConnection, logger helpers.Logger) ([]string, error) {
+func (c CfCmd) ExecuteCmd(cliConnection plugin.CliConnection, logger helpers.Logger) error {
 	logger.Info("About to execute: " + c.Printable())
-	return cliConnection.CliCommand(c.Args...)
+	_, err := cliConnection.CliCommand(c.Args...)
+	return err
 }
 
 func (c CfCmd) Printable() string {
 	return "cf " + strings.Join(c.Args, " ")
-}
-
-type CfApps struct{}
-
-func (c CfApps) ExecuteCmd(cliConnection plugin.CliConnection, logger helpers.Logger) ([]string, error) {
-	apps, err := cliConnection.GetApps()
-	if err != nil {
-		return []string{}, err
-	}
-
-	for _, app := range apps {
-		fmt.Println(app.Name)
-	}
-	return []string{}, nil
-}
-
-func (c CfApps) Printable() string {
-	return "cf apps"
 }
 
 type Plan struct {
@@ -65,7 +47,7 @@ func (p Plan) PrintPlan(logger helpers.Logger) {
 
 func (p Plan) ExecutePlan(cliConnection plugin.CliConnection, logger helpers.Logger) error {
 	for _, cmd := range p.Cmds {
-		_, err := cmd.ExecuteCmd(cliConnection, logger)
+		err := cmd.ExecuteCmd(cliConnection, logger)
 		if err != nil {
 			return err
 		}
