@@ -67,7 +67,7 @@ func executePlan(planName string, plan command.Plan, err error, logger Logger, c
 }
 
 func (c *protocol) Run(cliConnection plugin.CliConnection, args []string) {
-	if len(args) == 0 {
+	if len(args) == 1 {
 		syscall.Exit(0)
 	}
 	logger := NewLogger()

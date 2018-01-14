@@ -8,6 +8,8 @@ import (
 	"code.cloudfoundry.org/cli/util/manifest"
 	"regexp"
 	"fmt"
+	"strconv"
+	"code.cloudfoundry.org/cli/cf/errors"
 )
 
 type Promote struct {
@@ -39,6 +41,12 @@ func (p Promote) createRoutesCmd(application manifest.Application) []Cmd {
 	return cmds
 }
 
+func (p Promote) getPostfixVersion(appName string) string {
+	r, _ := regexp.Compile("^[a-zA-Z-]+-([0-9]+)$")
+	return r.FindStringSubmatch(appName)[1]
+
+}
+
 func (p Promote) looksLikeSameApp(appName string, otherAppName string) bool {
 	if otherAppName == fmt.Sprintf("%s-%s", appName, p.options.Postfix) {
 		return false
@@ -57,10 +65,17 @@ func (p Promote) createStopCmd(application manifest.Application) ([]Cmd, error) 
 	returnCmds := []Cmd{}
 	for _, app := range apps {
 		if p.looksLikeSameApp(application.Name, app.Name) {
-			cmd := CfCmd{
-				[]string{"stop", app.Name},
+			otherPostfix, _ := strconv.ParseInt(p.getPostfixVersion(app.Name), 10, 64)
+			currentPostfix, _ := strconv.ParseInt(p.options.Postfix, 10, 64)
+			if (otherPostfix > currentPostfix) {
+				return []Cmd{}, errors.New(app.Name + " have a postfix greater than " + p.options.Postfix)
 			}
-			returnCmds = append(returnCmds, cmd)
+			if app.State == "started" {
+				cmd := CfCmd{
+					[]string{"stop", app.Name},
+				}
+				returnCmds = append(returnCmds, cmd)
+			}
 		}
 	}
 
