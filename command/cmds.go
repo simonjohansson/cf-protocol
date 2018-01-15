@@ -7,6 +7,7 @@ import (
 type Cmd interface {
 	Printable() string
 	GetArgs() []string
+	GetDir() string
 }
 
 /////
@@ -23,10 +24,16 @@ func (c CfCmd) GetArgs() []string {
 	return c.Args
 }
 
+func (c CfCmd) GetDir() string {
+	return ""
+}
+
+
 /////
 
 type CliCmd struct {
 	Args []string
+	Dir string
 }
 
 func (c CliCmd) Printable() string {
@@ -35,4 +42,8 @@ func (c CliCmd) Printable() string {
 
 func (c CliCmd) GetArgs() []string {
 	return c.Args
+}
+
+func (c CliCmd) GetDir() string {
+	return c.Dir
 }

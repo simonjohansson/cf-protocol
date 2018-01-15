@@ -52,10 +52,11 @@ func NewCliExecutor(logger helpers.Logger) cliExecutor {
 func (e cliExecutor) Execute(plan Plan) error {
 	for _, cmd := range plan.Cmds {
 		e.logger.Info("About to execute: " + cmd.Printable())
-		cmd := exec.Command(cmd.GetArgs()[0], cmd.GetArgs()[1:]...)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		err := cmd.Run()
+		execCmd := exec.Command(cmd.GetArgs()[0], cmd.GetArgs()[1:]...)
+		execCmd.Stdout = os.Stdout
+		execCmd.Stderr = os.Stderr
+		execCmd.Dir = cmd.GetDir()
+		err := execCmd.Run()
 		if err != nil {
 			return err
 		}

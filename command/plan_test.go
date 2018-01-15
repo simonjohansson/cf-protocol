@@ -12,7 +12,7 @@ var _ = Describe("Plan", func() {
 			[]Cmd{
 				CfCmd{[]string{"a", "b", "c"}},
 				CfCmd{[]string{"1", "2", "3"}},
-				CliCmd{[]string{"df", "-h"}},
+				CliCmd{[]string{"df", "-h"}, ""},
 			},
 		}
 

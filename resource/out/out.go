@@ -21,16 +21,14 @@ func NewOut(sourceRoot string, input *Input, concourseEnv *ConcourseEnv) Out {
 	}
 }
 
-func (o Out) changeWorkingDir() CliCmd {
+func (o Out) workingDir() string {
 	appRoot := path.Join(o.sourceRoot, o.input.Params.Dir)
-	return CliCmd{
-		[]string{"cd", appRoot},
-	}
+	return appRoot
 }
 
 func (o Out) cfLogin() CliCmd {
 	return CliCmd{
-		[]string{"cf", "login",
+		Args: []string{"cf", "login",
 			"-a", o.input.Source.Api,
 			"-u", o.input.Source.Username,
 			"-p", o.input.Source.Password,
@@ -46,19 +44,23 @@ func (o Out) protocolCommand() CliCmd {
 	switch commandName {
 	case "protocol-push":
 		cmd = CliCmd{
-			[]string{
+			Args: []string{
 				"cf", commandName,
 				"-manifest", o.input.Params.ManifestPath,
 				"-domain", "domain.io",
 				"-postfix", o.concourseEnv.BuildName,
-			}}
+			},
+			Dir: o.workingDir(),
+		}
 	case "protocol-promote", "protocol-cleanup", "protocol-delete":
 		cmd = CliCmd{
-			[]string{
+			Args: []string{
 				"cf", commandName,
 				"-manifest", o.input.Params.ManifestPath,
 				"-postfix", o.concourseEnv.BuildName,
-			}}
+			},
+			Dir: o.workingDir(),
+		}
 	}
 	return cmd
 }
@@ -105,7 +107,6 @@ func (o Out) OutPlan() (Plan, error) {
 
 	return Plan{
 		[]Cmd{
-			o.changeWorkingDir(),
 			o.cfLogin(),
 			o.protocolCommand(),
 		},
