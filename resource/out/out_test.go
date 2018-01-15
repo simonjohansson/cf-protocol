@@ -52,11 +52,11 @@ var _ = Describe("Out", func() {
 					"api",
 					"username",
 					"password",
-					"org",
-					"space",
 				},
 				Params: Params{
-					Dir: "/some/path",
+					Dir:   "/some/path",
+					Org:   "org",
+					Space: "space",
 				},
 			}
 
@@ -67,8 +67,8 @@ var _ = Describe("Out", func() {
 					"-a", input.Source.Api,
 					"-u", input.Source.Username,
 					"-p", input.Source.Password,
-					"-o", input.Source.Org,
-					"-s", input.Source.Password},
+					"-o", input.Params.Org,
+					"-s", input.Params.Space},
 			}))
 		})
 
@@ -78,13 +78,13 @@ var _ = Describe("Out", func() {
 					"api",
 					"username",
 					"password",
-					"org",
-					"space",
 				},
 				Params: Params{
 					Dir:          "/some/path",
 					Cmd:          "push",
 					ManifestPath: "manifest.yml",
+					Org:          "org",
+					Space:        "space",
 				},
 			}
 			concourseEnv = ConcourseEnv{
@@ -107,13 +107,13 @@ var _ = Describe("Out", func() {
 					"api",
 					"username",
 					"password",
-					"org",
-					"space",
 				},
 				Params: Params{
 					Dir:          "/some/path",
 					Cmd:          "promote",
 					ManifestPath: "manifest.yml",
+					Org:          "org",
+					Space:        "space",
 				},
 			}
 
@@ -137,13 +137,13 @@ var _ = Describe("Out", func() {
 					"api",
 					"username",
 					"password",
-					"org",
-					"space",
 				},
 				Params: Params{
 					Dir:          "/some/path",
 					Cmd:          "cleanup",
 					ManifestPath: "manifest.yml",
+					Org:          "org",
+					Space:        "space",
 				},
 			}
 
@@ -167,13 +167,13 @@ var _ = Describe("Out", func() {
 					"api",
 					"username",
 					"password",
-					"org",
-					"space",
 				},
 				Params: Params{
 					Dir:          "/some/path",
 					Cmd:          "delete",
 					ManifestPath: "manifest.yml",
+					Org:          "org",
+					Space:        "space",
 				},
 			}
 

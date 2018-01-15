@@ -4,13 +4,13 @@ type Params struct {
 	Dir          string `json:"dir"`
 	Cmd          string `json:"cmd"`
 	ManifestPath string `json:"manifestPath"`
+	Org          string `json:"org"`
+	Space        string `json:"space"`
 }
 type Source struct {
 	Api      string `json:"api"`
 	Username string `json:"username"`
 	Password string `json:"password"`
-	Org      string `json:"org"`
-	Space    string `json:"space"`
 }
 
 type Input struct {

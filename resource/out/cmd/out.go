@@ -10,8 +10,8 @@ import (
 	"github.com/simonjohansson/cf-protocol/command"
 )
 
-func getData() (Input, ConcourseEnv, error) {
-	inbytes, err := ioutil.ReadAll(os.Stdin)
+func getData(data os.File) (Input, ConcourseEnv, error) {
+	inbytes, err := ioutil.ReadAll(&data)
 	var input Input
 	err = json.Unmarshal(inbytes, &input)
 	if err != nil {
@@ -25,23 +25,25 @@ func getData() (Input, ConcourseEnv, error) {
 	return input, concourseEnv, nil
 }
 
+func logErrorAndExit(err error, logger Logger) {
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+}
+
 func main() {
 	logger := NewLogger()
 	sourceRoot := os.Args[1]
-	input, concourseEnv, err := getData()
-	if err != nil {
-		logger.Error(err.Error())
-		os.Exit(1)
-	}
+	input, concourseEnv, err := getData(*os.Stdin)
+	logErrorAndExit(err, logger)
 
 	plan, err := NewOut(sourceRoot, &input, &concourseEnv).OutPlan()
-	if err != nil {
-		logger.Error(err.Error())
-		os.Exit(1)
-	}
+	logErrorAndExit(err, logger)
 
 	logger.Info("Execution plan ")
 	plan.PrintPlan(logger)
 	logger.Info("Executing")
-	command.NewCliExecutor(logger).Execute(plan)
+	err = command.NewCliExecutor(logger).Execute(plan)
+	logErrorAndExit(err, logger)
 }

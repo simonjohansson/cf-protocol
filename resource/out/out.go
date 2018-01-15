@@ -4,6 +4,7 @@ import (
 	. "github.com/simonjohansson/cf-protocol/command"
 	"code.cloudfoundry.org/cli/cf/errors"
 	"path"
+	"reflect"
 )
 
 type Out struct {
@@ -33,8 +34,8 @@ func (o Out) cfLogin() CliCmd {
 			"-a", o.input.Source.Api,
 			"-u", o.input.Source.Username,
 			"-p", o.input.Source.Password,
-			"-o", o.input.Source.Org,
-			"-s", o.input.Source.Password,
+			"-o", o.input.Params.Org,
+			"-s", o.input.Params.Space,
 		},
 	}
 }
@@ -62,10 +63,34 @@ func (o Out) protocolCommand() CliCmd {
 	return cmd
 }
 
-func (o Out) errorIfMissingSourceAndParams() error {
-	if o.input.Params.Dir == "" {
-		return errors.New("params.dir must be set!")
+type MyStruct struct {
+	A, B, C string
+}
+
+func (o Out) errorIfMissingSourceAndParamsValues() error {
+
+	msValuePtr := reflect.ValueOf(&o.input.Params)
+	msValue := msValuePtr.Elem()
+	val := reflect.Indirect(reflect.ValueOf(o.input.Params))
+	for i := 0; i < msValue.NumField(); i++ {
+		value := msValue.Field(i).String()
+		name := val.Type().Field(i).Name
+		if value == "" {
+			return errors.New("params." + name + " must be set!")
+		}
 	}
+
+	msValuePtr = reflect.ValueOf(&o.input.Source)
+	msValue = msValuePtr.Elem()
+	val = reflect.Indirect(reflect.ValueOf(o.input.Source))
+	for i := 0; i < msValue.NumField(); i++ {
+		value := msValue.Field(i).String()
+		name := val.Type().Field(i).Name
+		if value == "" {
+			return errors.New("source." + name + " must be set!")
+		}
+	}
+
 	return nil
 }
 
@@ -73,7 +98,7 @@ func (o Out) OutPlan() (Plan, error) {
 	if (o.input == &Input{}) {
 		return Plan{}, errors.New("Input looks empty..")
 	}
-	err := o.errorIfMissingSourceAndParams()
+	err := o.errorIfMissingSourceAndParamsValues()
 	if err != nil {
 		return Plan{}, err
 	}

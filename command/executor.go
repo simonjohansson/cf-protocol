@@ -54,6 +54,7 @@ func (e cliExecutor) Execute(plan Plan) error {
 		e.logger.Info("About to execute: " + cmd.Printable())
 		cmd := exec.Command(cmd.GetArgs()[0], cmd.GetArgs()[1:]...)
 		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
 		err := cmd.Run()
 		if err != nil {
 			return err
