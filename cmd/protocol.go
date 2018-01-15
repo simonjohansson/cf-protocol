@@ -8,7 +8,7 @@ import (
 	. "github.com/simonjohansson/cf-protocol/commands/delete"
 	. "github.com/simonjohansson/cf-protocol/commands/push"
 	. "github.com/simonjohansson/cf-protocol/commands/cleanup"
-	"github.com/simonjohansson/cf-protocol/command"
+	. "github.com/simonjohansson/cf-protocol/command"
 )
 
 type protocol struct{}
@@ -56,7 +56,7 @@ func main() {
 	plugin.Start(new(protocol))
 }
 
-func executePlan(planName string, plan command.Plan, err error, logger Logger, cliConnection plugin.CliConnection) {
+func executePlan(planName string, plan Plan, err error, logger Logger, cliConnection plugin.CliConnection) {
 	if err != nil {
 		logger.Error("Error creating plan for " + planName + ": " + err.Error())
 		syscall.Exit(-1)
@@ -70,7 +70,7 @@ func executePlan(planName string, plan command.Plan, err error, logger Logger, c
 	logger.Info("Execution plan ")
 	plan.PrintPlan(logger)
 	logger.Info("Executing")
-	err = plan.ExecutePlan(cliConnection, logger)
+	err = NewCfExecutor(cliConnection, logger).Execute(plan)
 	if err != nil {
 		logger.Error(err.Error())
 		logger.Error("Aborting.")
@@ -89,6 +89,7 @@ func (c *protocol) Run(cliConnection plugin.CliConnection, args []string) {
 		logger.Error(err.Error())
 		syscall.Exit(-1)
 	}
+
 	switch args[0] {
 	case "protocol-push":
 		plan, err := NewPush(NewManifestReader(), options).PushPlan()
@@ -103,5 +104,4 @@ func (c *protocol) Run(cliConnection plugin.CliConnection, args []string) {
 		plan, err := NewCleanup(cliConnection, NewManifestReader(), options).CleanupPlan()
 		executePlan("cleanup", plan, err, logger, cliConnection)
 	}
-
 }
