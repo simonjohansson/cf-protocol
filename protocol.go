@@ -7,6 +7,7 @@ import (
 	"syscall"
 	. "github.com/simonjohansson/cf-protocol/commands/delete"
 	. "github.com/simonjohansson/cf-protocol/commands/push"
+	. "github.com/simonjohansson/cf-protocol/commands/cleanup"
 	"github.com/simonjohansson/cf-protocol/command"
 )
 
@@ -32,6 +33,13 @@ func (c *protocol) GetMetadata() plugin.PluginMetadata {
 			},
 			{
 				Name:     "protocol-delete",
+				HelpText: "Deletes the app",
+				UsageDetails: plugin.Usage{
+					Usage: "protocol-delete -manifest -postfix",
+				},
+			},
+			{
+				Name:     "protocol-cleanup",
 				HelpText: "Deletes the app",
 				UsageDetails: plugin.Usage{
 					Usage: "protocol-delete -manifest -postfix",
@@ -86,5 +94,9 @@ func (c *protocol) Run(cliConnection plugin.CliConnection, args []string) {
 	case "protocol-delete":
 		plan, err := NewDelete(NewManifestReader(), options).DeletePlan()
 		executePlan("Push", plan, err, logger, cliConnection)
+	case "protocol-cleanup":
+		plan, err := NewCleanup(cliConnection, NewManifestReader(), options).CleanupPlan()
+		executePlan("Cleanup", plan, err, logger, cliConnection)
 	}
+
 }

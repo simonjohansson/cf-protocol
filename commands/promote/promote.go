@@ -44,7 +44,6 @@ func (p Promote) createRoutesCmd(application manifest.Application) []Cmd {
 func (p Promote) getPostfixVersion(appName string) string {
 	r, _ := regexp.Compile("^[a-zA-Z-]+-([0-9]+)$")
 	return r.FindStringSubmatch(appName)[1]
-
 }
 
 func (p Promote) looksLikeSameApp(appName string, otherAppName string) bool {
