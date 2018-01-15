@@ -54,7 +54,7 @@ var _ = Describe("Delete Plan", func() {
 
 		expected := Plan{
 			Cmds: []Cmd{
-				CfCmd{[]string{"delete", appName, "-f", "-r"}},
+				CfCmd{[]string{"delete", appName, "-f"}},
 			},
 		}
 

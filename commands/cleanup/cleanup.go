@@ -51,7 +51,7 @@ func (c Cleanup) deleteCommands(apps []GetAppsModel) []Cmd {
 
 	deleteCmds := []Cmd{}
 	for _, app := range (apps[1:]) {
-		cmd := CfCmd{[]string{"delete", app.Name, "-f", "-r"}}
+		cmd := CfCmd{[]string{"delete", app.Name, "-f"}}
 		deleteCmds = append(deleteCmds, cmd)
 	}
 	return deleteCmds

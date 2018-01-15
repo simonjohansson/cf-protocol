@@ -148,8 +148,8 @@ var _ = Describe("Cleanup plan", func() {
 			Expect(err).To(Not(HaveOccurred()))
 			Expect(plan).To(Equal(Plan{[]Cmd{
 				CfCmd{[]string{"stop", oldAppName3}},
-				CfCmd{[]string{"delete", oldAppName2, "-f", "-r"}},
-				CfCmd{[]string{"delete", oldAppName1, "-f", "-r"}},
+				CfCmd{[]string{"delete", oldAppName2, "-f"}},
+				CfCmd{[]string{"delete", oldAppName1, "-f"}},
 			}}))
 
 		})

@@ -30,6 +30,6 @@ func (d Delete) DeletePlan() (Plan, error) {
 
 	appName := d.appName(application.Name, d.options.Postfix)
 	return Plan{[]Cmd{
-		CfCmd{[]string{"delete", appName, "-f", "-r"}},
+		CfCmd{[]string{"delete", appName, "-f"}},
 	}}, nil
 }
