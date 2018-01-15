@@ -58,10 +58,15 @@ func main() {
 
 func executePlan(planName string, plan command.Plan, err error, logger Logger, cliConnection plugin.CliConnection) {
 	if err != nil {
-		logger.Error(planName + " failed due to " + err.Error())
+		logger.Error("Error creating plan for " + planName + ": " + err.Error())
 		syscall.Exit(-1)
 	}
+
 	logger.Info("Running plan " + planName)
+	if len(plan.Cmds) == 0 {
+		logger.Info("Nothing to do, yay.")
+		syscall.Exit(0)
+	}
 	logger.Info("Execution plan ")
 	plan.PrintPlan(logger)
 	logger.Info("Executing")
@@ -87,16 +92,16 @@ func (c *protocol) Run(cliConnection plugin.CliConnection, args []string) {
 	switch args[0] {
 	case "protocol-push":
 		plan, err := NewPush(NewManifestReader(), options).PushPlan()
-		executePlan("Push", plan, err, logger, cliConnection)
+		executePlan("push", plan, err, logger, cliConnection)
 	case "protocol-promote":
 		plan, err := NewPromote(cliConnection, NewManifestReader(), options).PromotePlan()
-		executePlan("Push", plan, err, logger, cliConnection)
+		executePlan("promote", plan, err, logger, cliConnection)
 	case "protocol-delete":
 		plan, err := NewDelete(NewManifestReader(), options).DeletePlan()
-		executePlan("Push", plan, err, logger, cliConnection)
+		executePlan("delete", plan, err, logger, cliConnection)
 	case "protocol-cleanup":
 		plan, err := NewCleanup(cliConnection, NewManifestReader(), options).CleanupPlan()
-		executePlan("Cleanup", plan, err, logger, cliConnection)
+		executePlan("cleanup", plan, err, logger, cliConnection)
 	}
 
 }
