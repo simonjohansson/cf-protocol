@@ -1,0 +1,43 @@
+resources:
+- name: Push Concourse resource to Docker Hub
+  type: docker-image
+  source:
+    password: ((docker.password))
+    repository: simonjohansson/cf-protocol
+    username: ((docker.username))
+- name: cf-protocol
+  type: git
+  source:
+    uri: https://github.com/simonjohansson/cf-protocol.git
+jobs:
+- name: Test, build and push to Docker Hub
+  serial: true
+  plan:
+  - get: cf-protocol
+    trigger: true
+  - task: Test and build binaries
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: golang
+          tag: 1.9.2-alpine3.7
+      run:
+        path: /bin/sh
+        args:
+        - -exc
+        - |
+          ls -al
+          export GOPATH=$PWD
+          cd src/github.com/simonjohansson/cf-protocol
+          ./build.sh
+          cp -r protocol check in out Dockerfile ../../../../docker-build-dir
+      inputs:
+      - name: cf-protocol
+        path: /src/github.com/simonjohansson/cf-protocol
+      outputs:
+      - name: docker-build-dir
+  - put: Push Concourse resource to Docker Hub
+    params:
+      build: docker-build-dir
