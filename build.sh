@@ -6,8 +6,7 @@ function build {
 }
 
 echo "Testing.."
-go get -u github.com/onsi/ginkgo/ginkgo
-ginkgo -r 
+go test ./...
 
 build cmd/protocol.go
 build resource/check/cmd/check.go
