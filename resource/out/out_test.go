@@ -72,7 +72,7 @@ var _ = Describe("Out", func() {
 			}))
 		})
 
-		It("creates a plan where the third CMD is a cf protocol-*", func() {
+		It("creates a plan where the third CMD is a cf protocol-push", func() {
 			input = Input{
 				Source: Source{
 					"api",
@@ -94,9 +94,101 @@ var _ = Describe("Out", func() {
 			plan, err := out.OutPlan()
 			Expect(err).To(Not(HaveOccurred()))
 			Expect(plan.Cmds[2]).To(Equal(CliCmd{
-				[]string{"cf", "protocol-push", "-manifest", "manifest.yml", "-domain", "domain.io", "-postfix", "1337"},
+				[]string{"cf", "protocol-push",
+					"-manifest", input.Params.ManifestPath,
+					"-domain", "domain.io",
+					"-postfix", concourseEnv.BuildName},
 			}))
 		})
 
+		It("creates a plan where the third CMD is a cf protocol-promote", func() {
+			input = Input{
+				Source: Source{
+					"api",
+					"username",
+					"password",
+					"org",
+					"space",
+				},
+				Params: Params{
+					Dir:          "/some/path",
+					Cmd:          "promote",
+					ManifestPath: "manifest.yml",
+				},
+			}
+
+			concourseEnv = ConcourseEnv{
+				BuildName: "1337",
+			}
+
+			plan, err := out.OutPlan()
+			Expect(err).To(Not(HaveOccurred()))
+			Expect(plan.Cmds[2]).To(Equal(CliCmd{
+				[]string{"cf", "protocol-promote",
+					"-manifest", input.Params.ManifestPath,
+					"-postfix", concourseEnv.BuildName,
+				},
+			}))
+		})
+
+		It("creates a plan where the third CMD is a cf protocol-cleanup", func() {
+			input = Input{
+				Source: Source{
+					"api",
+					"username",
+					"password",
+					"org",
+					"space",
+				},
+				Params: Params{
+					Dir:          "/some/path",
+					Cmd:          "cleanup",
+					ManifestPath: "manifest.yml",
+				},
+			}
+
+			concourseEnv = ConcourseEnv{
+				BuildName: "1337",
+			}
+
+			plan, err := out.OutPlan()
+			Expect(err).To(Not(HaveOccurred()))
+			Expect(plan.Cmds[2]).To(Equal(CliCmd{
+				[]string{"cf", "protocol-cleanup",
+					"-manifest", input.Params.ManifestPath,
+					"-postfix", concourseEnv.BuildName,
+				},
+			}))
+		})
+
+		It("creates a plan where the third CMD is a cf protocol-delete", func() {
+			input = Input{
+				Source: Source{
+					"api",
+					"username",
+					"password",
+					"org",
+					"space",
+				},
+				Params: Params{
+					Dir:          "/some/path",
+					Cmd:          "delete",
+					ManifestPath: "manifest.yml",
+				},
+			}
+
+			concourseEnv = ConcourseEnv{
+				BuildName: "1337",
+			}
+
+			plan, err := out.OutPlan()
+			Expect(err).To(Not(HaveOccurred()))
+			Expect(plan.Cmds[2]).To(Equal(CliCmd{
+				[]string{"cf", "protocol-delete",
+					"-manifest", input.Params.ManifestPath,
+					"-postfix", concourseEnv.BuildName,
+				},
+			}))
+		})
 	})
 })

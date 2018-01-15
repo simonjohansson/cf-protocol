@@ -40,15 +40,26 @@ func (o Out) cfLogin() CliCmd {
 }
 
 func (o Out) protocolCommand() CliCmd {
+	var cmd CliCmd
 	commandName := "protocol-" + o.input.Params.Cmd
-	return CliCmd{
-		[]string{
-			"cf", commandName,
-			"-manifest", o.input.Params.ManifestPath,
-			"-domain", "domain.io",
-			"-postfix", o.concourseEnv.BuildName,
-		},
+	switch commandName {
+	case "protocol-push":
+		cmd = CliCmd{
+			[]string{
+				"cf", commandName,
+				"-manifest", o.input.Params.ManifestPath,
+				"-domain", "domain.io",
+				"-postfix", o.concourseEnv.BuildName,
+			}}
+	case "protocol-promote", "protocol-cleanup", "protocol-delete":
+		cmd = CliCmd{
+			[]string{
+				"cf", commandName,
+				"-manifest", o.input.Params.ManifestPath,
+				"-postfix", o.concourseEnv.BuildName,
+			}}
 	}
+	return cmd
 }
 
 func (o Out) errorIfMissingSourceAndParams() error {
@@ -66,6 +77,7 @@ func (o Out) OutPlan() (Plan, error) {
 	if err != nil {
 		return Plan{}, err
 	}
+
 	return Plan{
 		[]Cmd{
 			o.changeWorkingDir(),

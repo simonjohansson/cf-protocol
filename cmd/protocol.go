@@ -21,14 +21,14 @@ func (c *protocol) GetMetadata() plugin.PluginMetadata {
 				Name:     "protocol-push",
 				HelpText: "Pushes the app",
 				UsageDetails: plugin.Usage{
-					Usage: "protocol-push -domain -postfix -manifest ",
+					Usage: "protocol-push -domain -manifest -postfix",
 				},
 			},
 			{
 				Name:     "protocol-promote",
 				HelpText: "Promotes the app",
 				UsageDetails: plugin.Usage{
-					Usage: "protocol-promote -manifest ",
+					Usage: "protocol-promote -manifest -postfix",
 				},
 			},
 			{
