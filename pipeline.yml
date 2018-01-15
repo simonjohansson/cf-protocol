@@ -28,7 +28,6 @@ jobs:
         args:
         - -exc
         - |
-          ls -al
           export GOPATH=$PWD
           cd src/github.com/simonjohansson/cf-protocol
           ./build.sh
