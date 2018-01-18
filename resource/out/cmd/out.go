@@ -7,8 +7,8 @@ import (
 	"io/ioutil"
 	"encoding/json"
 	"github.com/caarlos0/env"
-	"github.com/simonjohansson/cf-protocol/command"
 	"time"
+	"github.com/simonjohansson/cf-protocol/command"
 )
 
 func getData(data os.File) (Input, ConcourseEnv, error) {
@@ -35,7 +35,8 @@ func logErrorAndExit(err error, logger Logger) {
 
 func main() {
 	logger := NewLogger()
-	logger.ForwardStdoutToStderr()
+	logger.ForwardStdoutToStderr() // stdout in a out resource must ONLY be used to return a result.
+
 	sourceRoot := os.Args[1]
 	input, concourseEnv, err := getData(*os.Stdin)
 	logErrorAndExit(err, logger)

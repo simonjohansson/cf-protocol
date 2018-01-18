@@ -14,10 +14,10 @@ type Executor interface {
 
 type cfExecutor struct {
 	cliConnection plugin.CliConnection
-	logger        helpers.Logging
+	logger        helpers.Logger
 }
 
-func NewCfExecutor(cliConnection plugin.CliConnection, logger helpers.Logging) cfExecutor {
+func NewCfExecutor(cliConnection plugin.CliConnection, logger helpers.Logger) cfExecutor {
 	return cfExecutor{
 		cliConnection: cliConnection,
 		logger:        logger,

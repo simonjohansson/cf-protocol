@@ -1,57 +1,37 @@
 package helpers
 
 import (
-	"github.com/sirupsen/logrus"
 	"os"
 	"fmt"
 	"strings"
 )
 
-type Logging interface {
-	Info(string)
-	Error(string)
+type Logger struct {
+	pipe *os.File
 }
 
-type Logger struct{}
-type PrintlnLogger struct{}
-
-func (PrintlnLogger) Info(msg string) {
-	fmt.Println(msg)
+func (p Logger) Info(msg string) {
+	fmt.Fprintln(p.pipe, msg)
 }
 
-func (PrintlnLogger) Error(msg string) {
-	fmt.Println(msg)
+func (p Logger) Error(msg string) {
+	fmt.Fprintln(p.pipe, msg)
+}
+
+func (p *Logger) ForwardStdoutToStderr() {
+	p.pipe = os.Stderr
 }
 
 func (h Logger) Write(p []byte) (n int, err error) {
 	str := string(p)
 	for _, line := range strings.Split(str, "\n") {
-		logrus.Info(line)
+		h.Info(line)
 	}
 	return len(p), nil
 }
 
-func (h Logger) Info(msg string) {
-	logrus.Info(msg)
-}
-
-func (h Logger) Error(msg string) {
-	logrus.Error(msg)
-}
-
-func (h Logger) ForwardStdoutToStderr() {
-	logrus.SetOutput(os.Stderr)
-}
-
 func NewLogger() Logger {
-	formatter := &logrus.TextFormatter{
-		FullTimestamp: true,
+	return Logger{
+		pipe: os.Stdout,
 	}
-	logrus.SetFormatter(formatter)
-
-	return Logger{}
-}
-
-func NewPrinlnLogger() Logging {
-	return PrintlnLogger{}
 }
