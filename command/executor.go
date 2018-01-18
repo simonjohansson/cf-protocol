@@ -53,7 +53,7 @@ func (e cliExecutor) Execute(plan Plan) error {
 	for _, cmd := range plan.Cmds {
 		e.logger.Info("About to execute: " + cmd.Printable())
 		execCmd := exec.Command(cmd.GetArgs()[0], cmd.GetArgs()[1:]...)
-		execCmd.Stdout = os.Stdout
+		execCmd.Stdout = os.Stderr
 		execCmd.Stderr = os.Stderr
 		execCmd.Dir = cmd.GetDir()
 		err := execCmd.Run()
