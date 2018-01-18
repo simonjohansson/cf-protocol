@@ -1,11 +1,12 @@
 package out
 
 type Params struct {
-	Dir          string `json:"dir"`
+	Path         string `json:"path"`
 	Cmd          string `json:"cmd"`
-	ManifestPath string `json:"manifestPath"`
 	Org          string `json:"org"`
 	Space        string `json:"space"`
+	ManifestPath string `json:"manifestPath"`
+	TestDomain   string `json:"testDomain"`
 }
 type Source struct {
 	Api      string `json:"api"`

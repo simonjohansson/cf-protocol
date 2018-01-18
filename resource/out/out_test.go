@@ -42,7 +42,7 @@ var _ = Describe("Out", func() {
 					"password",
 				},
 				Params: Params{
-					Dir:          "/some/path",
+					Path:         "/some/path",
 					Org:          "org",
 					Space:        "space",
 					Cmd:          "anything",
@@ -71,11 +71,12 @@ var _ = Describe("Out", func() {
 					"password",
 				},
 				Params: Params{
-					Dir:          "/some/path",
+					Path:         "/some/path",
 					Cmd:          "push",
 					ManifestPath: "manifest.yml",
 					Org:          "org",
 					Space:        "space",
+					TestDomain:   "wryyyy.io",
 				},
 			}
 			concourseEnv = ConcourseEnv{
@@ -87,7 +88,7 @@ var _ = Describe("Out", func() {
 			Expect(plan.Cmds[1]).To(Equal(CliCmd{
 				Args: []string{"cf", "protocol-push",
 					"-manifest", input.Params.ManifestPath,
-					"-domain", "domain.io",
+					"-domain", input.Params.TestDomain,
 					"-postfix", concourseEnv.BuildName},
 				Dir: "/source/root/some/path",
 			}))
@@ -101,7 +102,7 @@ var _ = Describe("Out", func() {
 					"password",
 				},
 				Params: Params{
-					Dir:          "/some/path",
+					Path:         "/some/path",
 					Cmd:          "promote",
 					ManifestPath: "manifest.yml",
 					Org:          "org",
@@ -132,7 +133,7 @@ var _ = Describe("Out", func() {
 					"password",
 				},
 				Params: Params{
-					Dir:          "/some/path",
+					Path:         "/some/path",
 					Cmd:          "cleanup",
 					ManifestPath: "manifest.yml",
 					Org:          "org",
@@ -163,7 +164,7 @@ var _ = Describe("Out", func() {
 					"password",
 				},
 				Params: Params{
-					Dir:          "/some/path",
+					Path:         "/some/path",
 					Cmd:          "delete",
 					ManifestPath: "manifest.yml",
 					Org:          "org",

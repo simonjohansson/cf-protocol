@@ -22,7 +22,7 @@ func NewOut(sourceRoot string, input *Input, concourseEnv *ConcourseEnv) Out {
 }
 
 func (o Out) workingDir() string {
-	appRoot := path.Join(o.sourceRoot, o.input.Params.Dir)
+	appRoot := path.Join(o.sourceRoot, o.input.Params.Path)
 	return appRoot
 }
 
@@ -47,7 +47,7 @@ func (o Out) protocolCommand() CliCmd {
 			Args: []string{
 				"cf", commandName,
 				"-manifest", o.input.Params.ManifestPath,
-				"-domain", "domain.io",
+				"-domain", o.input.Params.TestDomain,
 				"-postfix", o.concourseEnv.BuildName,
 			},
 			Dir: o.workingDir(),
@@ -78,7 +78,11 @@ func (o Out) errorIfMissingSourceAndParamsValues() error {
 		value := msValue.Field(i).String()
 		name := val.Type().Field(i).Name
 		if value == "" {
-			return errors.New("params." + name + " must be set!")
+			if o.input.Params.Cmd != "push" && o.input.Params.TestDomain == "" {
+				// We only need testDomain if cmd is push
+			} else {
+				return errors.New("params." + name + " must be set!")
+			}
 		}
 	}
 
