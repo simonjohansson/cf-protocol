@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"github.com/caarlos0/env"
 	"github.com/simonjohansson/cf-protocol/command"
+	"time"
 )
 
 func getData(data os.File) (Input, ConcourseEnv, error) {
@@ -46,4 +47,16 @@ func main() {
 	logger.Info("Executing")
 	err = command.NewCliExecutor(logger).Execute(plan)
 	logErrorAndExit(err, logger)
+
+	response := Response{
+		Version: Version{
+			Timestamp: time.Now(),
+		},
+		Metadata: []MetadataPair{
+			MetadataPair{Name: "Api", Value: input.Source.Api},
+			MetadataPair{Name: "Org", Value: input.Params.Org},
+			MetadataPair{Name: "Space", Value: input.Params.Space},
+		},
+	}
+	json.NewEncoder(os.Stdout).Encode(response)
 }

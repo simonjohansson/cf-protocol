@@ -1,5 +1,7 @@
 package out
 
+import "time"
+
 type Params struct {
 	Path         string `json:"path"`
 	Cmd          string `json:"cmd"`
@@ -26,4 +28,17 @@ type ConcourseEnv struct {
 	BuildPipelineName string `env:"BUILD_PIPELINE_NAME"`
 	AtcExternalUrl    string `env:"ATC_EXTERNAL_URL"`
 	BuildTeamName     string `env:"BUILD_TEAM_NAME"`
+}
+
+type Response struct {
+	Version  Version        `json:"version"`
+	Metadata []MetadataPair `json:"metadata"`
+}
+type Version struct {
+	Timestamp time.Time `json:"timestamp"`
+}
+
+type MetadataPair struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
 }
