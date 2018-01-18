@@ -56,7 +56,7 @@ func main() {
 	plugin.Start(new(protocol))
 }
 
-func executePlan(planName string, plan Plan, err error, logger Logger, cliConnection plugin.CliConnection) {
+func executePlan(planName string, plan Plan, err error, logger Logging, cliConnection plugin.CliConnection) {
 	if err != nil {
 		logger.Error("Error creating plan for " + planName + ": " + err.Error())
 		syscall.Exit(-1)
@@ -83,7 +83,7 @@ func (c *protocol) Run(cliConnection plugin.CliConnection, args []string) {
 	if len(args) == 1 {
 		syscall.Exit(0)
 	}
-	logger := NewLogger()
+	logger := NewPrinlnLogger()
 	options, err := ParseArgs(args)
 	if err != nil {
 		logger.Error(err.Error())

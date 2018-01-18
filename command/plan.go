@@ -18,7 +18,7 @@ func (p Plan) Printable() []string {
 	return commands
 }
 
-func (p Plan) PrintPlan(logger helpers.Logger) {
+func (p Plan) PrintPlan(logger helpers.Logging) {
 	for _, command := range p.Printable() {
 		logger.Info(command)
 	}

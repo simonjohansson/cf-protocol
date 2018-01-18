@@ -35,6 +35,7 @@ func logErrorAndExit(err error, logger Logger) {
 
 func main() {
 	logger := NewLogger()
+	logger.ForwardStdoutToStderr()
 	sourceRoot := os.Args[1]
 	input, concourseEnv, err := getData(*os.Stdin)
 	logErrorAndExit(err, logger)

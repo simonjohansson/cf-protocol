@@ -1,27 +1,57 @@
 package helpers
 
-import "github.com/sirupsen/logrus"
+import (
+	"github.com/sirupsen/logrus"
+	"os"
+	"fmt"
+	"strings"
+)
 
-type Logger interface {
+type Logging interface {
 	Info(string)
 	Error(string)
 }
 
-type logger struct{}
+type Logger struct{}
+type PrintlnLogger struct{}
 
-func (h logger) Info(msg string) {
+func (PrintlnLogger) Info(msg string) {
+	fmt.Println(msg)
+}
+
+func (PrintlnLogger) Error(msg string) {
+	fmt.Println(msg)
+}
+
+func (h Logger) Write(p []byte) (n int, err error) {
+	str := string(p)
+	for _, line := range strings.Split(str, "\n") {
+		logrus.Info(line)
+	}
+	return len(p), nil
+}
+
+func (h Logger) Info(msg string) {
 	logrus.Info(msg)
 }
 
-func (h logger) Error(msg string) {
+func (h Logger) Error(msg string) {
 	logrus.Error(msg)
 }
 
-func NewLogger() logger {
+func (h Logger) ForwardStdoutToStderr() {
+	logrus.SetOutput(os.Stderr)
+}
+
+func NewLogger() Logger {
 	formatter := &logrus.TextFormatter{
 		FullTimestamp: true,
 	}
 	logrus.SetFormatter(formatter)
 
-	return logger{}
+	return Logger{}
+}
+
+func NewPrinlnLogger() Logging {
+	return PrintlnLogger{}
 }

@@ -4,7 +4,6 @@ import (
 	"github.com/simonjohansson/cf-protocol/helpers"
 	"code.cloudfoundry.org/cli/plugin"
 	"os/exec"
-	"os"
 )
 
 type Executor interface {
@@ -15,10 +14,10 @@ type Executor interface {
 
 type cfExecutor struct {
 	cliConnection plugin.CliConnection
-	logger        helpers.Logger
+	logger        helpers.Logging
 }
 
-func NewCfExecutor(cliConnection plugin.CliConnection, logger helpers.Logger) cfExecutor {
+func NewCfExecutor(cliConnection plugin.CliConnection, logger helpers.Logging) cfExecutor {
 	return cfExecutor{
 		cliConnection: cliConnection,
 		logger:        logger,
@@ -53,8 +52,8 @@ func (e cliExecutor) Execute(plan Plan) error {
 	for _, cmd := range plan.Cmds {
 		e.logger.Info("About to execute: " + cmd.Printable())
 		execCmd := exec.Command(cmd.GetArgs()[0], cmd.GetArgs()[1:]...)
-		execCmd.Stdout = os.Stderr
-		execCmd.Stderr = os.Stderr
+		execCmd.Stdout = e.logger
+		execCmd.Stderr = e.logger
 		execCmd.Dir = cmd.GetDir()
 		err := execCmd.Run()
 		if err != nil {
