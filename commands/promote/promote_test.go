@@ -12,15 +12,20 @@ import (
 	"errors"
 	"code.cloudfoundry.org/cli/util/manifest"
 	"code.cloudfoundry.org/cli/plugin/models"
+	"fmt"
 )
 
 var _ = Describe("Promote plan", func() {
 	var (
-		mockCtrl       *gomock.Controller
-		manifestReader *MockManifestReader
-		cliConnection  *MockCliConnection
-		promote        Promote
-		options        helpers.Options
+		mockCtrl           *gomock.Controller
+		manifestReader     *MockManifestReader
+		cliConnection      *MockCliConnection
+		promote            Promote
+		options            helpers.Options
+		appName            string
+		currentSpace       string
+		appNameWithPostfix string
+		getAppResponse     plugin_models.GetAppModel
 	)
 
 	BeforeEach(func() {
@@ -31,6 +36,30 @@ var _ = Describe("Promote plan", func() {
 			ManifestPath: "/path/to/manifest.yml",
 			Postfix:      "1337",
 		}
+		appName = "my-app"
+		appNameWithPostfix = appName + "-" + options.Postfix
+		currentSpace = "dev"
+		cliConnection.EXPECT().GetCurrentSpace().Return(plugin_models.Space{plugin_models.SpaceFields{Name: currentSpace}}, nil)
+
+		getAppResponse = plugin_models.GetAppModel{
+			Name: appName,
+			Routes: []plugin_models.GetApp_RouteSummary{
+				plugin_models.GetApp_RouteSummary{
+					Host: fmt.Sprintf("%s-%s-%s", appName, currentSpace, "test"),
+					Domain: plugin_models.GetApp_DomainFields{
+						Name: "yolo.com",
+					},
+				},
+				plugin_models.GetApp_RouteSummary{
+					Host: "kehehehe",
+					Domain: plugin_models.GetApp_DomainFields{
+						Name: "someRandomDomain.com",
+					},
+				},
+			},
+		}
+		cliConnection.EXPECT().GetApp(appNameWithPostfix).Return(getAppResponse, nil)
+
 		promote = NewPromote(cliConnection, manifestReader, options)
 
 	})
@@ -50,23 +79,24 @@ var _ = Describe("Promote plan", func() {
 	Context("When there is no old apps", func() {
 		It("binds the routes", func() {
 			application := manifest.Application{
-				Name:   "my-app",
+				Name:   appName,
 				Routes: []string{"route-a.domain1.com", "route-b.subdomain.domain2.com"},
 			}
+
 			manifestReader.EXPECT().Read(options.ManifestPath).
 				Return(application, nil)
 
 			cliConnection.EXPECT().GetApps().Return([]plugin_models.GetAppsModel{}, nil)
 
-			appName := application.Name + "-" + options.Postfix
 			app, err := promote.PromotePlan()
 
 			Expect(err).To(Not(HaveOccurred()))
 			Expect(app).To(Equal(
 				Plan{
 					[]Cmd{
-						CfCmd{[]string{"map-route", appName, "domain1.com", "--hostname", "route-a"}},
-						CfCmd{[]string{"map-route", appName, "subdomain.domain2.com", "--hostname", "route-b"}},
+						CfCmd{[]string{"map-route", appNameWithPostfix, "domain1.com", "--hostname", "route-a"}},
+						CfCmd{[]string{"map-route", appNameWithPostfix, "subdomain.domain2.com", "--hostname", "route-b"}},
+						CfCmd{[]string{"unmap-route", appNameWithPostfix, getAppResponse.Routes[0].Domain.Name, "--hostname", getAppResponse.Routes[0].Host}},
 					}}))
 		})
 	})
@@ -74,7 +104,7 @@ var _ = Describe("Promote plan", func() {
 	Context("When there is one old app with the same postfix", func() {
 		It("binds the routes and stops the old running app", func() {
 			application := manifest.Application{
-				Name:   "my-app",
+				Name:   appName,
 				Routes: []string{"route-a.domain1.com", "route-b.subdomain.domain2.com"},
 			}
 			manifestReader.EXPECT().Read(options.ManifestPath).
@@ -87,22 +117,22 @@ var _ = Describe("Promote plan", func() {
 					plugin_models.GetAppsModel{Name: oldAppName, State: "started"},
 					plugin_models.GetAppsModel{Name: "random"},
 				}, nil)
-			appName := application.Name + "-" + options.Postfix
 			app, err := promote.PromotePlan()
 
 			Expect(err).To(Not(HaveOccurred()))
 			Expect(app).To(Equal(
 				Plan{
 					[]Cmd{
-						CfCmd{[]string{"map-route", appName, "domain1.com", "--hostname", "route-a"}},
-						CfCmd{[]string{"map-route", appName, "subdomain.domain2.com", "--hostname", "route-b"}},
+						CfCmd{[]string{"map-route", appNameWithPostfix, "domain1.com", "--hostname", "route-a"}},
+						CfCmd{[]string{"map-route", appNameWithPostfix, "subdomain.domain2.com", "--hostname", "route-b"}},
+						CfCmd{[]string{"unmap-route", appNameWithPostfix, getAppResponse.Routes[0].Domain.Name, "--hostname", getAppResponse.Routes[0].Host}},
 						CfCmd{[]string{"stop", oldAppName}},
 					}}))
 		})
 
 		It("binds the routes and doesn't stop the old running app", func() {
 			application := manifest.Application{
-				Name:   "my-app",
+				Name:   appName,
 				Routes: []string{"route-a.domain1.com", "route-b.subdomain.domain2.com"},
 			}
 			manifestReader.EXPECT().Read(options.ManifestPath).
@@ -115,15 +145,15 @@ var _ = Describe("Promote plan", func() {
 					plugin_models.GetAppsModel{Name: oldAppName, State: "stopped"},
 					plugin_models.GetAppsModel{Name: "random"},
 				}, nil)
-			appName := application.Name + "-" + options.Postfix
 			app, err := promote.PromotePlan()
 
 			Expect(err).To(Not(HaveOccurred()))
 			Expect(app).To(Equal(
 				Plan{
 					[]Cmd{
-						CfCmd{[]string{"map-route", appName, "domain1.com", "--hostname", "route-a"}},
-						CfCmd{[]string{"map-route", appName, "subdomain.domain2.com", "--hostname", "route-b"}},
+						CfCmd{[]string{"map-route", appNameWithPostfix, "domain1.com", "--hostname", "route-a"}},
+						CfCmd{[]string{"map-route", appNameWithPostfix, "subdomain.domain2.com", "--hostname", "route-b"}},
+						CfCmd{[]string{"unmap-route", appNameWithPostfix, getAppResponse.Routes[0].Domain.Name, "--hostname", getAppResponse.Routes[0].Host}},
 					}}))
 		})
 	})
@@ -131,7 +161,7 @@ var _ = Describe("Promote plan", func() {
 	Context("When there is one newer app with a greater postfix", func() {
 		It("errors out", func() {
 			application := manifest.Application{
-				Name:   "my-app",
+				Name:   appName,
 				Routes: []string{"route-a.domain1.com", "route-b.subdomain.domain2.com"},
 			}
 			manifestReader.EXPECT().Read(options.ManifestPath).
@@ -155,13 +185,12 @@ var _ = Describe("Promote plan", func() {
 	Context("When there is one app with the same postfix", func() {
 		It("it maps the routes but doesn't stop the app in the end", func() {
 			application := manifest.Application{
-				Name:   "my-app",
+				Name:   appName,
 				Routes: []string{"route-a.domain1.com", "route-b.subdomain.domain2.com"},
 			}
 			manifestReader.EXPECT().Read(options.ManifestPath).
 				Return(application, nil)
 
-			appName := application.Name + "-" + options.Postfix
 			cliConnection.EXPECT().GetApps().Return(
 				[]plugin_models.GetAppsModel{
 					plugin_models.GetAppsModel{Name: "other-app-1"},
@@ -175,8 +204,9 @@ var _ = Describe("Promote plan", func() {
 			Expect(app).To(Equal(
 				Plan{
 					[]Cmd{
-						CfCmd{[]string{"map-route", appName, "domain1.com", "--hostname", "route-a"}},
-						CfCmd{[]string{"map-route", appName, "subdomain.domain2.com", "--hostname", "route-b"}},
+						CfCmd{[]string{"map-route", appNameWithPostfix, "domain1.com", "--hostname", "route-a"}},
+						CfCmd{[]string{"map-route", appNameWithPostfix, "subdomain.domain2.com", "--hostname", "route-b"}},
+						CfCmd{[]string{"unmap-route", appNameWithPostfix, getAppResponse.Routes[0].Domain.Name, "--hostname", getAppResponse.Routes[0].Host}},
 					}}))
 		})
 	})

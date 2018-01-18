@@ -26,7 +26,7 @@ func NewPromote(cliConnection plugin.CliConnection, manifestReader ManifestReade
 	}
 }
 
-func (p Promote) createRoutesCmd(application manifest.Application) []Cmd {
+func (p Promote) createRoutesCmd(application manifest.Application) ([]Cmd, error) {
 	cmds := []Cmd{}
 	appName := application.Name + "-" + p.options.Postfix
 	for _, route := range application.Routes {
@@ -38,7 +38,33 @@ func (p Promote) createRoutesCmd(application manifest.Application) []Cmd {
 		}
 		cmds = append(cmds, cmd)
 	}
-	return cmds
+
+	removeTestRoute, err := p.createRemoveTestRouteCmd(application)
+	if err != nil {
+		return []Cmd{}, err
+	}
+	return append(cmds, removeTestRoute), nil
+}
+
+func (p Promote) createRemoveTestRouteCmd(application manifest.Application) (Cmd, error) {
+	appName := fmt.Sprintf("%s-%s", application.Name, p.options.Postfix)
+	currentSpace, err := p.cliConnection.GetCurrentSpace()
+	if err != nil {
+		return CfCmd{}, nil
+	}
+
+	app, err := p.cliConnection.GetApp(appName)
+	if err != nil {
+		return CfCmd{}, nil
+	}
+
+	for _, route := range app.Routes {
+		if route.Host == fmt.Sprintf("%s-%s-test", application.Name, currentSpace.Name) {
+			return CfCmd{[]string{"unmap-route", appName, route.Domain.Name, "--hostname", route.Host}}, nil
+		}
+	}
+
+	return CfCmd{}, nil
 }
 
 func (p Promote) getPostfixVersion(appName string) string {
@@ -87,11 +113,16 @@ func (p Promote) PromotePlan() (Plan, error) {
 		return Plan{}, err
 	}
 
-	routes := p.createRoutesCmd(application)
+	routes, err := p.createRoutesCmd(application)
+	if err != nil {
+		return Plan{}, err
+	}
+
 	stops, err := p.createStopCmd(application)
 	if err != nil {
 		return Plan{}, err
 	}
+
 	return Plan{
 		Cmds: append(routes, stops...),
 	}, nil

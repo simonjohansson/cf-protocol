@@ -92,7 +92,7 @@ func (c *protocol) Run(cliConnection plugin.CliConnection, args []string) {
 
 	switch args[0] {
 	case "protocol-push":
-		plan, err := NewPush(NewManifestReader(), options).PushPlan()
+		plan, err := NewPush(NewManifestReader(), cliConnection, options).PushPlan()
 		executePlan("push", plan, err, logger, cliConnection)
 	case "protocol-promote":
 		plan, err := NewPromote(cliConnection, NewManifestReader(), options).PromotePlan()
